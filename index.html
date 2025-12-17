@@ -1,0 +1,1461 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plataforma de Prácticas Médicas - Hospital Salvador B. Gautier</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        /* --- VARIABLES DE DISEÑO Y ESTILOS GLOBALES --- */
+        :root {
+            --primary-color: #0A6EBD;
+            --secondary-color: #38B2AC;
+            --accent-color: #ED8936;
+            --success-color: #48BB78;
+            --danger-color: #F56565;
+            --dark-bg: #1A202C;
+            --light-bg: #F7FAFC;
+            --card-bg: #FFFFFF;
+            --text-primary: #2D3748;
+            --text-secondary: #718096;
+            --border-color: #E2E8F0;
+            --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            --font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--light-bg);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+
+        /* --- HEADER --- */
+        .main-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 1rem 0;
+            box-shadow: var(--shadow-md);
+            position: sticky;
+            top: 0; z-index: 100;
+        }
+        .header-content { display: flex; justify-content: space-between; align-items: center; }
+        .logo { display: flex; align-items: center; font-size: 1.5rem; font-weight: bold; }
+        .logo i { margin-right: 10px; font-size: 2rem; }
+        .header-nav a { color: white; margin-left: 20px; font-weight: 500; cursor: pointer; }
+
+        /* --- VISTAS PRINCIPALES --- */
+        .view { display: none; }
+        .student-sub-view { display: none; }
+
+        /* --- VISTA ESTUDIANTE: LISTA DE MÓDULOS --- */
+        .hero { text-align: center; padding: 40px 20px; }
+        .hero h1 { font-size: 2.5rem; color: var(--text-primary); margin-bottom: 10px; }
+        .hero p { font-size: 1.2rem; color: var(--text-secondary); max-width: 700px; margin: 0 auto 30px auto; }
+        .modules-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; margin-top: 30px; }
+        .module-card {
+            background: var(--card-bg); border-radius: 12px; padding: 30px;
+            box-shadow: var(--shadow-sm); border: 1px solid var(--border-color);
+            text-align: center; transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .module-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-lg); }
+        .module-card i { font-size: 3rem; color: var(--secondary-color); margin-bottom: 15px; }
+        .module-card h3 { color: var(--primary-color); margin-bottom: 10px; }
+        .module-card .exercise-count { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 20px; }
+
+        /* --- VISTA ESTUDIANTE: CUESTIONARIO --- */
+        #quiz-view {
+            background: var(--card-bg); border-radius: 12px; padding: 30px;
+            box-shadow: var(--shadow-md); max-width: 800px; margin: 20px auto;
+        }
+        .quiz-header {
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 2px solid var(--border-color); padding-bottom: 15px; margin-bottom: 25px;
+        }
+        .progress-bar-container {
+            width: 100%; background-color: var(--border-color); border-radius: 8px; height: 10px; margin-bottom: 25px;
+        }
+        .progress-bar {
+            height: 100%; background: linear-gradient(90deg, var(--secondary-color), var(--primary-color));
+            border-radius: 8px; transition: width 0.4s ease;
+        }
+        .quiz-question h2 { margin-bottom: 20px; }
+        .quiz-image { max-width: 100%; height: auto; border-radius: 8px; margin: 20px 0; border: 1px solid var(--border-color); }
+        .quiz-options { list-style: none; }
+        .quiz-option {
+            background: var(--light-bg); border: 2px solid var(--border-color); border-radius: 8px;
+            padding: 15px 20px; margin-bottom: 12px; cursor: pointer; transition: all 0.2s ease;
+            display: flex; align-items: center;
+        }
+        .quiz-option:hover { border-color: var(--primary-color); background: #EDF2F7; }
+        .quiz-option input[type="radio"] { margin-right: 15px; }
+        .quiz-option.selected { border-color: var(--primary-color); background: #EBF8FF; }
+        .quiz-navigation { display: flex; justify-content: space-between; margin-top: 30px; }
+        .btn {
+            padding: 12px 25px; border: none; border-radius: 8px; font-size: 1rem;
+            font-weight: 600; cursor: pointer; transition: all 0.2s ease;
+            text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .btn-primary { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: white; }
+        .btn-secondary { background-color: var(--text-secondary); color: white; }
+        .btn-success { background-color: var(--success-color); color: white; }
+        .btn-danger { background-color: var(--danger-color); color: white; }
+        .btn-ai { background: linear-gradient(135deg, var(--accent-color), #F6AD55); color: white; border: none; padding: 10px 15px; border-radius: 6px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .btn-small { padding: 8px 12px; font-size: 0.8rem; }
+        .btn-ai:hover, .btn:hover { transform: translateY(-1px); box-shadow: var(--shadow-md); }
+        .btn:disabled { background: #CBD5E0; cursor: not-allowed; transform: none; }
+
+        /* --- VISTA ESTUDIANTE: RESULTADOS --- */
+        #results-view {
+            background: var(--card-bg); border-radius: 12px; padding: 40px;
+            box-shadow: var(--shadow-md); max-width: 800px; margin: 20px auto; text-align: center;
+        }
+        #results-view h2 { font-size: 2.5rem; margin-bottom: 20px; }
+        .score-display { font-size: 3rem; font-weight: bold; color: var(--primary-color); margin-bottom: 30px; }
+        .results-details { text-align: left; }
+        .result-item {
+            padding: 15px; border-radius: 8px; margin-bottom: 10px;
+            display: flex; align-items: flex-start; justify-content: space-between;
+        }
+        .result-item.correct { background-color: #C6F6D5; }
+        .result-item.incorrect { background-color: #FED7D7; }
+        .result-item i { font-size: 1.5rem; margin-top: 5px; }
+        .result-item.correct i { color: var(--success-color); }
+        .result-item.incorrect i { color: var(--danger-color); }
+        .result-explanation {
+            margin-top: 10px; font-style: normal; color: var(--text-primary);
+            padding: 10px; background: rgba(0,0,0,0.05); border-radius: 5px;
+            font-size: 0.95rem; line-height: 1.7;
+        }
+        .result-reference {
+            margin-top: 8px; font-size: 0.85rem; color: var(--text-secondary);
+            font-style: italic;
+        }
+        .ai-loading {
+            font-size: 1.1rem; color: var(--secondary-color); font-weight: 500;
+            padding: 20px; text-align: center;
+        }
+
+        /* --- VISTA PROFESOR --- */
+        #teacher-view { background-color: var(--dark-bg); color: #E2E8F0; min-height: 100vh; }
+        #teacher-view .container { display: flex; }
+        .admin-sidebar { width: 250px; background-color: #2D3748; padding: 20px; min-height: 100vh; }
+        .admin-sidebar h2 { color: var(--secondary-color); margin-bottom: 30px; text-align: center; }
+        .admin-sidebar ul { list-style: none; }
+        .admin-sidebar li { margin-bottom: 15px; }
+        .admin-sidebar a { color: #CBD5E0; display: block; padding: 10px 15px; border-radius: 6px; transition: background-color 0.2s; }
+        .admin-sidebar a:hover, .admin-sidebar a.active { background-color: var(--primary-color); color: white; }
+        .admin-content { flex-grow: 1; padding: 30px; }
+        .admin-content h1 { margin-bottom: 30px; color: white; }
+        .admin-card { background: #2D3748; padding: 25px; border-radius: 12px; box-shadow: var(--shadow-lg); margin-bottom: 20px;}
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #A0AEC0; }
+        .form-control {
+            width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #4A5568;
+            background-color: var(--dark-bg); color: #E2E8F0; font-size: 1rem;
+        }
+        .form-control:focus { outline: none; border-color: var(--secondary-color); box-shadow: 0 0 0 3px rgba(56, 178, 172, 0.3); }
+        textarea.form-control { resize: vertical; min-height: 120px; }
+        .options-creator .option-input-group { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+        .options-creator .option-input-group input[type="text"] { flex-grow: 1; }
+        .options-creator .option-input-group input[type="radio"] { width: 20px; height: 20px; }
+        
+        .image-upload-group { display: flex; gap: 10px; align-items: center; }
+        .image-upload-group .form-control { flex-grow: 1; }
+        .image-preview { margin-top: 10px; max-width: 200px; border-radius: 8px; border: 1px solid #4A5568; }
+        .ai-generate-group { display: flex; align-items: flex-end; gap: 10px; }
+        .ai-generate-group .form-group { flex-grow: 1; }
+
+        /* --- ESTILOS PARA ADMINISTRACIÓN DE MÓDULOS Y FORMULARIO DESPLEGABLE --- */
+        .module-list-item {
+            background: #4A5568; padding: 15px 20px; border-radius: 8px;
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;
+        }
+        .module-list-item h4 { color: white; margin: 0; }
+        .module-list-item .exercise-count { color: #CBD5E0; font-size: 0.9rem; }
+        .module-list-item .actions { display: flex; gap: 10px; }
+        .toggle-form-btn { width: 100%; margin-bottom: 20px; }
+        .collapsible-form-container {
+            max-height: 0; overflow: hidden; transition: max-height: 0.5s ease-out;
+        }
+        .collapsible-form-container.show { max-height: 2000px; }
+        .full-ai-btn { /* Estilo especial para el botón principal de IA */
+            width: 100%; margin-top: 15px; padding: 15px; font-size: 1.1rem;
+            background: linear-gradient(135deg, #805AD5, #9F7AEA); color: white;
+        }
+
+        /* --- MODAL DEL QR --- */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.6); animation: fadeIn 0.3s; }
+        .modal-content { background-color: var(--card-bg); margin: 10% auto; padding: 30px; border-radius: 12px; width: 90%; max-width: 400px; text-align: center; animation: slideIn 0.4s; }
+        .modal-close { color: var(--text-secondary); float: right; font-size: 28px; font-weight: bold; cursor: pointer; transition: color 0.2s; }
+        .modal-close:hover { color: var(--text-primary); }
+        #qrcode { margin: 20px auto; display: inline-block; padding: 20px; background: white; border: 1px solid var(--border-color); border-radius: 8px; }
+        @keyframes fadeIn { from {opacity: 0} to {opacity: 1} }
+        @keyframes slideIn { from {transform: translateY(-50px); opacity: 0;} to {transform: translateY(0); opacity: 1;}}
+
+        /* --- VISTA LOGIN --- */
+        #login-view { justify-content: center; align-items: center; min-height: 100vh; background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); }
+        .login-form { background: white; padding: 40px; border-radius: 12px; box-shadow: var(--shadow-lg); width: 100%; max-width: 400px; text-align: center; }
+        .login-form h2 { margin-bottom: 30px; color: var(--text-primary); }
+        .login-form .form-group { text-align: left; }
+        .login-btn { width: 100%; margin-top: 10px; }
+
+        /* --- ESTILOS PARA MODAL DE NOMBRE --- */
+        #name-modal .modal-content { max-width: 500px; }
+        #name-modal h2 { margin-bottom: 20px; color: var(--text-primary); }
+        #name-modal p { margin-bottom: 20px; color: var(--text-secondary); }
+
+        /* --- ESTILOS PARA VISTA DE RESULTADOS DEL PROFESOR --- */
+        .results-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .results-table th, .results-table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #4A5568; }
+        .results-table th { background-color: #4A5568; color: white; font-weight: 600; }
+        .results-table tr:hover { background-color: #2D3748; }
+        .score-badge {
+            display: inline-block; padding: 5px 10px; border-radius: 20px;
+            font-weight: 600; color: white; text-align: center;
+        }
+        .score-high { background-color: var(--success-color); }
+        .score-medium { background-color: var(--accent-color); }
+        .score-low { background-color: var(--danger-color); }
+        .module-selector { margin-bottom: 20px; }
+        .stats-container { display: flex; gap: 20px; margin-bottom: 20px; }
+        .stat-card { flex: 1; background: #4A5568; padding: 15px; border-radius: 8px; text-align: center; }
+        .stat-value { font-size: 2rem; font-weight: bold; margin-bottom: 5px; }
+        .stat-label { color: #CBD5E0; font-size: 0.9rem; }
+
+        /* --- ESTILOS PARA BOTÓN DE GENERAR OPCIONES --- */
+        .options-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .generate-options-btn { background: linear-gradient(135deg, #9F7AEA, #805AD5); color: white; padding: 8px 15px; border-radius: 6px; font-weight: 600; cursor: pointer; transition: all 0.2s; border: none; }
+        .generate-options-btn:hover { transform: translateY(-1px); box-shadow: var(--shadow-md); }
+        .generate-options-btn:disabled { background: #CBD5E0; cursor: not-allowed; transform: none; }
+    </style>
+</head>
+<body>
+
+    <!-- VISTA DEL ESTUDIANTE -->
+    <div id="student-view" class="view">
+        <header class="main-header">
+            <div class="container header-content">
+                <div class="logo"><i class="fas fa-hospital-user"></i><span>Plataforma de Prácticas Médicas</span></div>
+                <nav class="header-nav"><a onclick="showLogin()"><i class="fas fa-lock"></i> Acceso Profesores</a></nav>
+            </div>
+        </header>
+        <main class="container">
+            <div id="modules-list-view" class="student-sub-view">
+                <section class="hero">
+                    <h1>Residencia de Emergenciología y Cuidados Críticos</h1>
+                    <p>Hospital Salvador B. Gautier</p>
+                    <p>Selecciona un módulo para poner a prueba tus conocimientos.</p>
+                </section>
+                <section id="modules-grid" class="modules-grid"></section>
+            </div>
+            <div id="quiz-view" class="student-sub-view">
+                <div class="quiz-header"><h3 id="quiz-title">Módulo: </h3><span id="question-counter">Pregunta 1 de X</span></div>
+                <div class="progress-bar-container"><div id="progress-bar" class="progress-bar"></div></div>
+                <div class="quiz-question">
+                    <h2 id="question-text"></h2>
+                    <img id="question-image" class="quiz-image" style="display:none;">
+                    <ul id="quiz-options" class="quiz-options"></ul>
+                </div>
+                <div class="quiz-navigation">
+                    <button id="prev-btn" class="btn btn-secondary" onclick="previousQuestion()" disabled><i class="fas fa-arrow-left"></i> Anterior</button>
+                    <button id="next-btn" class="btn btn-primary" onclick="nextQuestion()">Siguiente <i class="fas fa-arrow-right"></i></button>
+                    <button id="finish-btn" class="btn btn-success" style="display:none;" onclick="finishQuiz()">Finalizar y Ver Resultados</button>
+                </div>
+            </div>
+            <div id="results-view" class="student-sub-view">
+                <i class="fas fa-brain fa-4x" style="color: var(--accent-color); margin-bottom: 20px;"></i>
+                <h2>¡Cuestionario Completado!</h2>
+                <div class="score-display" id="score-display">0/0</div>
+                <p id="score-message"></p>
+                <div class="results-details" id="results-details"><div class="ai-loading"><i class="fas fa-spinner fa-spin"></i> Consultando IA para generar una explicación detallada...</div></div>
+                <button class="btn btn-primary" style="margin-top: 30px;" onclick="showModulesList()"><i class="fas fa-redo"></i> Volver a los Módulos</button>
+            </div>
+        </main>
+    </div>
+
+    <!-- VISTA DE LOGIN PARA PROFESORES -->
+    <div id="login-view" class="view">
+        <form class="login-form" onsubmit="handleLogin(event)">
+            <h2><i class="fas fa-user-md"></i> Acceso Profesores</h2>
+            <div class="form-group"><label for="username">Usuario</label><input type="text" id="username" class="form-control" required></div>
+            <div class="form-group"><label for="password">Contraseña</label><input type="password" id="password" class="form-control" required></div>
+            <button type="submit" class="btn btn-primary login-btn">Ingresar</button>
+            <p style="margin-top: 20px; font-size: 0.9rem; color: #718096;">Demo: Usuario "profesor", Contraseña "1234"</p>
+        </form>
+    </div>
+
+    <!-- VISTA DEL PROFESOR (PANEL DE ADMIN UNIFICADO) -->
+    <div id="teacher-view" class="view">
+        <div class="container">
+            <aside class="admin-sidebar">
+                <h2><i class="fas fa-cogs"></i> Panel de Control</h2>
+                <ul>
+                    <li><a href="#" class="active" onclick="showAdminSection('content')"><i class="fas fa-list"></i> Administrar Contenido</a></li>
+                    <li><a href="#" onclick="showAdminSection('results')"><i class="fas fa-chart-bar"></i> Ver Resultados</a></li>
+                    <li><a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</a></li>
+                </ul>
+            </aside>
+            <main class="admin-content">
+                <!-- SECCIÓN DE ADMINISTRACIÓN DE CONTENIDO -->
+                <div id="content-section" class="admin-section">
+                    <h1>Administrar Contenido de la Plataforma</h1>
+                    <div class="admin-card">
+                        <h3 style="color: white; margin-bottom: 20px;">Lista de Módulos y Ejercicios</h3>
+                        <div id="module-management-list"></div>
+                    </div>
+                    <button class="btn btn-primary toggle-form-btn" onclick="toggleExerciseForm()">
+                        <i class="fas fa-plus-circle"></i> Añadir Nuevo Ejercicio
+                    </button>
+                    <div id="add-exercise-form-container" class="collapsible-form-container">
+                        <div class="admin-card">
+                            <h3 style="color: white; margin-bottom: 20px; border-bottom: 1px solid #4A5568; padding-bottom: 10px;">Formulario de Nuevo Ejercicio</h3>
+                            <form id="create-exercise-form" onsubmit="handleCreateExercise(event)">
+                                <div class="form-group">
+                                    <label for="ex-module">Módulo</label>
+                                    <select id="ex-module" class="form-control" onchange="handleModuleChange()">
+                                        <option value="Cardiología">Cardiología</option>
+                                        <option value="Neumología">Neumología</option>
+                                        <option value="Cuidados Críticos">Cuidados Críticos</option>
+                                        <option value="+ Nuevo Módulo">+ Crear Nuevo Módulo</option>
+                                    </select>
+                                </div>
+                                <div class="form-group" id="new-module-group" style="display:none;">
+                                    <label for="new-module-name">Nombre del Nuevo Módulo</label>
+                                    <input type="text" id="new-module-name" class="form-control" placeholder="Ej: Neurología">
+                                </div>
+                                <div class="form-group">
+                                    <label for="ex-question">Enunciado de la Pregunta</label>
+                                    <textarea id="ex-question" class="form-control" placeholder="Describe el escenario clínico..." required></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label>Imagen</label>
+                                    <div class="image-upload-group">
+                                        <input type="text" id="ex-image-url" class="form-control" placeholder="URL de la imagen (opcional)">
+                                        <input type="file" id="ex-image-file" accept="image/*" style="display: none;">
+                                        <button type="button" class="btn btn-secondary" onclick="document.getElementById('ex-image-file').click()"><i class="fas fa-plus"></i> Galería</button>
+                                    </div>
+                                    <img id="image-preview" class="image-preview" style="display: none;">
+                                </div>
+                                <div class="form-group">
+                                    <div class="options-header">
+                                        <label>Opciones de Respuesta</label>
+                                        <button type="button" class="generate-options-btn" onclick="generateAIOptionsOnly()">
+                                            <i class="fas fa-magic"></i> Generar con IA
+                                        </button>
+                                    </div>
+                                    <div class="options-creator">
+                                        <div class="option-input-group"><input type="radio" name="correct-answer" value="0" checked><input type="text" class="form-control option-text" placeholder="Opción 1" required></div>
+                                        <div class="option-input-group"><input type="radio" name="correct-answer" value="1"><input type="text" class="form-control option-text" placeholder="Opción 2" required></div>
+                                        <div class="option-input-group"><input type="radio" name="correct-answer" value="2"><input type="text" class="form-control option-text" placeholder="Opción 3" required></div>
+                                        <div class="option-input-group"><input type="radio" name="correct-answer" value="3"><input type="text" class="form-control option-text" placeholder="Opción 4" required></div>
+                                    </div>
+                                </div>
+                                <div class="ai-generate-group">
+                                    <div class="form-group">
+                                        <label for="ex-explanation">Explicación Detallada (respuesta correcta)</label>
+                                        <textarea id="ex-explanation" class="form-control" placeholder="Explica por qué esta es la respuesta correcta de forma detallada..." required></textarea>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="ex-reference">Referencia Bibliográfica</label>
+                                        <input type="text" id="ex-reference" class="form-control" placeholder="Ej: Guías de la ESC..." required>
+                                    </div>
+                                    <button type="button" class="btn-ai" onclick="generateAIContentForTeacher()"><i class="fas fa-magic"></i> Generar con IA</button>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Publicar Ejercicio</button>
+                            </form>
+                            <!-- Botón de IA completa -->
+                            <button type="button" class="btn full-ai-btn" onclick="generateFullAIQuestion()">
+                                <i class="fas fa-magic"></i> <strong>Generar Pregunta Completa con IA</strong>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN DE RESULTADOS -->
+                <div id="results-section" class="admin-section" style="display: none;">
+                    <h1>Resultados de Estudiantes</h1>
+                    <div class="admin-card">
+                        <div class="module-selector">
+                            <label for="results-module-select" style="color: #A0AEC0; display: block; margin-bottom: 10px;">Seleccionar Módulo:</label>
+                            <select id="results-module-select" class="form-control" onchange="showModuleResults()">
+                                <option value="">-- Seleccionar un módulo --</option>
+                            </select>
+                        </div>
+                        <div id="results-stats-container" class="stats-container" style="display: none;">
+                            <div class="stat-card">
+                                <div class="stat-value" id="total-students">0</div>
+                                <div class="stat-label">Total de Estudiantes</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value" id="avg-score">0%</div>
+                                <div class="stat-label">Puntuación Promedio</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value" id="pass-rate">0%</div>
+                                <div class="stat-label">Tasa de Aprobación</div>
+                            </div>
+                        </div>
+                        <div id="results-table-container" style="display: none;">
+                            <h3 style="color: white; margin-bottom: 20px;">Resultados Detallados</h3>
+                            <table class="results-table">
+                                <thead>
+                                    <tr>
+                                        <th>Nombre del Estudiante</th>
+                                        <th>Puntuación</th>
+                                        <th>Porcentaje</th>
+                                        <th>Fecha</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="results-tbody">
+                                </tbody>
+                            </table>
+                        </div>
+                        <div id="no-results-message" style="display: none; text-align: center; padding: 20px; color: #CBD5E0;">
+                            <i class="fas fa-info-circle fa-2x" style="margin-bottom: 10px;"></i>
+                            <p>No hay resultados disponibles para este módulo.</p>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- MODAL PARA EL CÓDIGO QR -->
+    <div id="qr-modal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeQRModal()">&times;</span>
+            <h2>Compartir Módulo</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 20px;">Escanea este código QR para acceder directamente al cuestionario.</p>
+            <div id="qrcode"></div>
+            <p id="qr-url" style="word-break: break-all; color: var(--text-secondary); font-size: 0.9rem; margin-top: 15px;"></p>
+        </div>
+    </div>
+
+    <!-- MODAL PARA INGRESAR NOMBRE -->
+    <div id="name-modal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeNameModal()">&times;</span>
+            <h2><i class="fas fa-user"></i> Antes de comenzar</h2>
+            <p>Por favor, introduce tu nombre para poder registrar tus resultados.</p>
+            <form id="name-form" onsubmit="startQuizWithName(event)">
+                <div class="form-group">
+                    <label for="student-name">Tu nombre:</label>
+                    <input type="text" id="student-name" class="form-control" required placeholder="Ej: Juan Pérez">
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Comenzar Cuestionario</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // --- ESTADO GLOBAL DE LA APLICACIÓN ---
+        let modulesData = {
+            "Cardiología": [
+                { 
+                    id: 1, 
+                    question: "Paciente de 58 años, diabético, ingresa por dolor torácico opresivo. ¿Cuál es el hallazgo clave en un ECG de IAM?", 
+                    image: "https://i.ibb.co/L8Yb4F4/ecg-iami.png", 
+                    options: ["Onda Q patológica", "Supradesnivel del ST", "Inversión de onda T", "Bloqueo de rama izquierda"], 
+                    correctAnswer: 1, 
+                    explanation: "La respuesta correcta es 'Supradesnivel del ST'. En un Infarto Agudo de Miocardio con Elevación del ST (IAMCEST), la oclusión completa de una arteria coronaria provoca isquemia transmural. Esto se manifiesta en el ECG como una elevación del segmento ST de al menos 1 mm en dos o más derivaciones contiguas.", 
+                    reference: "Referencia: Guías de la AHA/ACC para el Manejo del IAM con Elevación del ST, 2023." 
+                },
+                { 
+                    id: 2, 
+                    question: "¿Cuál es el fármaco de primera línea para la fibrilación auricular con respuesta ventricular rápida en un paciente hemodinámicamente estable?", 
+                    image: null, 
+                    options: ["Adenosina", "Amiodarona", "Digoxina", "Betabloqueante (ej. Metoprolol)"], 
+                    correctAnswer: 3, 
+                    explanation: "La respuesta correcta es 'Betabloqueante'. En un paciente con Fibrilación Auricular (FA) hemodinámicamente estable, el objetivo principal es el control de la frecuencia ventricular. Los betabloqueantes son los fármacos de primera línea debido a su eficacia y perfil de seguridad.", 
+                    reference: "Referencia: Guías de la ESC para el Manejo de la Fibrilación Auricular, 2020." 
+                }
+            ],
+            "Neumología": [
+                { 
+                    id: 3, 
+                    question: "Paciente con disnea súbita y dolor pleurítico. La radiografía muestra ausencia de marcas pulmonares en el ápex. ¿Cuál es el diagnóstico?", 
+                    image: "https://i.ibb.co/hK2mP4x/neumothorax.png", 
+                    options: ["Neumonía", "Neumotórax", "Edema pulmonar", "Derrame pleural"], 
+                    correctAnswer: 1, 
+                    explanation: "La respuesta correcta es 'Neumotórax'. El signo radiográfico clásico de un neumotórax es la visualización de la línea pleural visceral, una fina línea blanca que separa el pulmón colapsado de la pared torácica. Más allá de esta línea, no se ven marcas pulmonares vasculares.", 
+                    reference: "Referencia: Felson's Principles of Chest Roentgenology, 4th Edition." 
+                }
+            ],
+            "Cuidados Críticos": [
+                { 
+                    id: 4, 
+                    question: "¿Cuál es la primera intervención en una parada cardiorrespiratoria?", 
+                    image: null, 
+                    options: ["Administración de adrenalina", "Compresiones torácicas", "Intubación endotraqueal", "Desfibrilación"], 
+                    correctAnswer: 1, 
+                    explanation: "La respuesta correcta es 'Compresiones torácicas'. Según las guías de la AHA, la primera intervención en una parada cardiorrespiratoria es iniciar compresiones torácicas de alta calidad lo antes posible (circulación), seguidas de ventilación si el reanimador está entrenado.", 
+                    reference: "Referencia: Guías de la AHA para RCP y ACE, 2020." 
+                }
+            ]
+        };
+
+        // Base de conocimiento para la IA completa
+        const aiQuestionBank = {
+            "Cardiología": [
+                {
+                    question: "Un paciente de 65 años con antecedentes de hipertensión presenta disnea progresiva y ortopnea. En la exploración física se auscultan crepitantes en ambas bases pulmonares y un refuerzo del tercer ruido cardíaco (S3). ¿Cuál es el diagnóstico más probable?",
+                    image: "https://i.imgur.com/kYgP1c8.png",
+                    correctAnswer: "Insuficiencia Cardíaca Congestiva",
+                    distractors: ["Embolia Pulmonar", "Neumonía Adquirida en la Comunidad", "EPOC Exacerbado"],
+                    explanation: "La respuesta correcta es 'Insuficiencia Cardíaca Congestiva (ICC)'. La tríada de disnea progresiva, ortopnea y crepitantes bilaterales es clásica de ICC. El refuerzo del tercer ruido (S3) o 'galope' es un signo específico de fallo ventricular izquierdo.",
+                    reference: "Referencia: Guías de la ESC para el diagnóstico y tratamiento de la insuficiencia cardíaca aguda y crónica, 2021."
+                },
+                {
+                    question: "Un paciente de 70 años es traído por síncope. Su ECG muestra un ritmo irregular con ausencia de ondas P y una frecuencia ventricular de aproximadamente 75 lpm. ¿Cuál es el diagnóstico del ritmo y la principal preocupación?",
+                    image: "https://i.imgur.com/5zX8Q2h.png",
+                    correctAnswer: "Fibrilación Auricular - Riesgo de Accidente Cerebrovascular",
+                    distractors: ["Flutter Auricular - Bloqueo AV", "Taquicardia Sinusal - Isquemia Miocárdica", "Ritmo de la Unión - Hipoxia"],
+                    explanation: "La respuesta correcta es 'Fibrilación Auricular'. La ausencia de ondas P y el ritmo irregularmente irregular son patognomónicos de la FA. La principal preocupación a largo plazo es el riesgo de embolia sistémica, especialmente el accidente cerebrovascular (ACV).",
+                    reference: "Referencia: Guías de la ESC para el Manejo de la Fibrilación Auricular, 2020."
+                }
+            ],
+            "Neumología": [
+                {
+                    question: "Un joven fumador de 22 años acude a urgencias por dolor torácico súbito y disnea. La radiografía de tórax muestra un colapso pulmonar completo en el hemitórax derecho con desviación mediastínica contralateral. ¿Cuál es el diagnóstico y la prioridad terapéutica?",
+                    image: "https://i.imgur.com/W3tK6Yp.png",
+                    correctAnswer: "Neumotórax a tensión - Descompresión inmediata con aguja",
+                    distractors: ["Neumotórax simple - Observación", "Embolia pulmonar masiva - Trombolisis", "Taponamiento cardíaco - Pericardiocentesis"],
+                    explanation: "La respuesta correcta es 'Neumotórax a tensión'. La desviación mediastínica es un signo de inestabilidad hemodinámica que indica un neumotórax a tensión, una emergencia médica. La prioridad absoluta es la descompresión inmediata con una aguja.",
+                    reference: "Referencia: ATLS (Advanced Trauma Life Support) Student Course Manual, 10th Edition."
+                },
+                {
+                    question: "Una paciente de 45 años con asma presenta una exacerbación severa. Está taquicárdica, usa musculatura accesoria y su pico flujo espiratorio es < 30% del predicho. ¿Cuál es el tratamiento inicial de elección en el departamento de emergencias?",
+                    image: null,
+                    correctAnswer: "Beta2-agonistas inhalados de acción corta y corticoides sistémicos",
+                    distractors: ["Antibióticos de amplio espectro", "Intubación orotraqueal inmediata", "Sedación y ventilación no invasiva"],
+                    explanation: "La respuesta correcta es 'Beta2-agonistas inhalados de acción corta y corticoides sistémicos'. El manejo inicial de una crisis asmática severa se basa en la administración repetida de broncodilatadores y el inicio temprano de corticoides sistémicos.",
+                    reference: "Referencia: GINA (Global Initiative for Asthma) Report, 2023."
+                }
+            ],
+            "Cuidados Críticos": [
+                {
+                    question: "Un paciente en la UCI presenta hipotensión (TA 85/50 mmHg), taquicardia y oliguria (<0.5 ml/kg/h) tras una cirugía abdominal. ¿Cuál es el tipo de shock más probable y el primer paso en el manejo?",
+                    image: null,
+                    correctAnswer: "Shock Séptico - Administración de fluidos intravenosos",
+                    distractors: ["Shock Cardiogénico - Administración de inotrópicos", "Shock Hemorrágico - Transfusión de sangre", "Shock Obstructivo - Drenaje de neumotórax"],
+                    explanation: "La respuesta correcta es 'Shock Séptico'. El contexto postoperatorio abdominal y los signos de hipoperfusión son altamente sugestivos de shock séptico. El primer paso en el manejo de cualquier tipo de shock (excepto el cardiogénico con edema pulmonar) es la optimización de la volemia.",
+                    reference: "Referencia: Surviving Sepsis Campaign: International Guidelines for Management of Sepsis and Septic Shock 2021."
+                },
+                {
+                    question: "¿Cuál es la primera intervención en una parada cardiorrespiratoria?",
+                    image: null,
+                    correctAnswer: "Compresiones torácicas",
+                    distractors: ["Administración de adrenalina", "Intubación endotraqueal", "Desfibrilación"],
+                    explanation: "La respuesta correcta es 'Compresiones torácicas'. Según las guías de la AHA, la primera intervención en una parada cardiorrespiratoria es iniciar compresiones torácicas de alta calidad lo antes posible (circulación).",
+                    reference: "Referencia: Guías de la AHA para RCP y ACE, 2020."
+                }
+            ]
+        };
+
+        // Base de conocimiento específica para generar opciones con formato especial
+        const medicalConditions = [
+            // Cardiología
+            "Fibrilación Auricular", "Flutter Auricular", "Taquicardia Sinusal", "Ritmo de la Unión",
+            "Bloqueo AV", "Bloqueo de Rama", "Infarto Agudo de Miocardio", "Angina Inestable",
+            "Insuficiencia Cardíaca", "Pericarditis", "Miocarditis", "Endocarditis",
+            "Estenosis Aórtica", "Insuficiencia Mitral", "Procedimiento Coronario", "Valvulopatía",
+            
+            // Neumología
+            "Neumonía", "Neumotórax", "Derrame Pleural", "Embolia Pulmonar",
+            "Asma", "EPOC", "Fibrosis Pulmonar", "Sarcoidosis",
+            "Apnea del Sueño", "Hipertensión Pulmonar", "Síndrome de Distrés Respiratorio", "Bronquitis",
+            
+            // Cuidados Críticos
+            "Shock Séptico", "Shock Cardiogénico", "Shock Hemorrágico", "Shock Obstructivo",
+            "Síndrome de Respuesta Inflamatoria Sistémica", "Coagulación Intravascular Diseminada", "Insuficiencia Multiorgánica",
+            "Parada Cardiorrespiratoria", "Reanimación Cardiopulmonar", "Soporte Vital Avanzado",
+            
+            // Neurología
+            "Ictus Isquémico", "Hemorragia Intracerebral", "Meningitis", "Encefalitis",
+            "Epilepsia", "Convulsión Febril", "Migraña", "Cefalea en Racimos",
+            "Esclerosis Múltiple", "Parkinson", "Alzheimer", "Enfermedad de Huntington",
+            
+            // Gastroenterología
+            "Pancreatitis Aguda", "Hemorragia Digestiva", "Obstrucción Intestinal", "Peritonitis",
+            "Hepatitis Aguda", "Cirrosis Hepática", "Colangitis", "Enfermedad Inflamatoria Intestinal",
+            "Úlcera Péptica", "Enfermedad por Reflujo Gastroesofágico", "Síndrome de Intestino Irritable",
+            
+            // Endocrinología
+            "Diabetes Mellitus", "Cetoacidosis Diabética", "Hipoglucemia", "Síndrome Metabólico",
+            "Hipotiroidismo", "Hipertiroidismo", "Tiroiditis", "Bocio Nodular",
+            "Insuficiencia Suprarrenal", "Síndrome de Cushing", "Acromegalia", "Feocromocitoma",
+            
+            // Nefrología
+            "Insuficiencia Renal Aguda", "Enfermedad Renal Crónica", "Síndrome Nefrótico", "Glomerulonefritis",
+            "Hipertensión Renovascular", "Litiasis Renal", "Pielonefritis", "Hidronefrosis",
+            
+            // Hematología
+            "Anemia Ferropénica", "Anemia Megaloblástica", "Anemia Hemolítica", "Aplasia Medular",
+            "Leucemia Aguda", "Leucemia Crónica", "Linfoma de Hodgkin", "Linfoma No Hodgkin",
+            "Mieloma Múltiple", "Púrpura Trombocitopénica", "Hemofilia", "Enfermedad de Von Willebrand",
+            
+            // Reumatología
+            "Artritis Reumatoide", "Lupus Eritematoso Sistémico", "Esclerodermia", "Polimiositis",
+            "Artritis Psoriásica", "Espondilitis Anquilosante", "Gota", "Pseudogota",
+            "Fiebre Reumática", "Vasculitis", "Síndrome de Sjögren", "Sarcoidosis",
+            
+            // Infecciosas
+            "Sepsis", "Endocarditis Infecciosa", "Meningitis Bacteriana", "Tuberculosis",
+            "VIH/SIDA", "Hepatitis Viral", "Dengue", "Zika", "COVID-19",
+            "Infección del Tracto Urinario", "Neumonía Adquirida en la Comunidad", "Celulitis", "Osteomielitis",
+            
+            // Toxicología
+            "Sobredosis de Opioides", "Intoxicación por Alcohol", "Envenenamiento por Monóxido de Carbono",
+            "Síndrome Serotoninérgico", "Intoxicación por Metales Pesados", "Mordedura de Serpiente"
+        ];
+
+        const medicalComplications = [
+            // Complicaciones cardiovasculares
+            "Riesgo de Accidente Cerebrovascular", "Insuficiencia Cardíaca Aguda", "Arritmia Ventricular",
+            "Bloqueo AV", "Isquemia Miocárdica", "Muerte Súbita", "Embolia Sistémica",
+            "Hipertensión Pulmonar", "Taponamiento Cardíaco", "Disección Aórtica",
+            
+            // Complicaciones respiratorias
+            "Hipoxia", "Hipercapnia", "Insuficiencia Respiratoria", "Síndrome de Distrés Respiratorio",
+            "Atelectasia", "Neumonía Aspirativa", "Fístula Broncopleural", "Fibrosis Pulmonar",
+            
+            // Complicaciones neurológicas
+            "Edema Cerebral", "Hipertensión Intracraneal", "Herniación Cerebral", "Estado Epiléptico",
+            "Coma", "Parálisis", "Deterioro Cognitivo", "Delirium",
+            
+            // Complicaciones renales
+            "Insuficiencia Renal Aguda", "Necrosis Tubular Aguda", "Glomerulonefritis",
+            "Síndrome Nefrótico", "Hiperpotasemia", "Acidosis Metabólica",
+            
+            // Complicaciones gastrointestinales
+            "Hemorragia Digestiva", "Íleo Paralítico", "Perforación Intestinal", "Peritonitis",
+            "Colestasis", "Esteatosis Hepática", "Pancreatitis Aguda", "Colitis Isquémica",
+            
+            // Complicaciones hematológicas
+            "Coagulación Intravascular Diseminada", "Trombocitopenia", "Anemia", "Leucocitosis",
+            "Linfopenia", "Hiperviscosidad", "Hemólisis", "Púrpura",
+            
+            // Complicaciones metabólicas
+            "Acidosis Láctica", "Cetoacidosis", "Hipoglucemia", "Hiperglucemia",
+            "Hiponatremia", "Hiperpotasemia", "Hipocalcemia", "Hipomagnesemia",
+            
+            // Complicaciones infecciosas
+            "Sepsis", "Bacteriemia", "Fungemia", "Infección Nosocomial",
+            "Neumonía Asociada a Ventilador", "Infección del Sitio Quirúrgico", "Infección del Catéter",
+            
+            // Complicaciones sistémicas
+            "Fiebre", "Respuesta Inflamatoria Sistémica", "Síndrome de Adaptación General",
+            "Dolor Crónico", "Fatiga", "Caquexia", "Depresión", "Ansiedad"
+        ];
+
+        // Almacenamiento de resultados de estudiantes
+        let studentResults = {};
+        let currentQuiz = { 
+            moduleName: '', 
+            questions: [], 
+            userAnswers: [], 
+            currentQuestionIndex: 0, 
+            studentName: '' 
+        };
+
+        // Lógica de navegación de vistas
+        function showView(viewId) {
+            document.getElementById('student-view').style.display = 'none';
+            document.getElementById('login-view').style.display = 'none';
+            document.getElementById('teacher-view').style.display = 'none';
+            
+            const targetView = document.getElementById(viewId);
+            if (targetView) {
+                targetView.style.display = 'block';
+                if (viewId === 'login-view') {
+                    targetView.style.display = 'flex';
+                }
+            }
+        }
+
+        function showStudentSubView(viewIdToShow) {
+            const subViews = ['modules-list-view', 'quiz-view', 'results-view'];
+            subViews.forEach(id => {
+                document.getElementById(id).style.display = (id === viewIdToShow) ? 'block' : 'none';
+            });
+        }
+
+        function showLogin() { 
+            showView('login-view'); 
+        }
+
+        function showModulesList() { 
+            showView('student-view'); 
+            showStudentSubView('modules-list-view'); 
+            renderModules(); 
+        }
+
+        function logout() { 
+            showView('student-view'); 
+        }
+
+        // Lógica de la vista estudiante
+        function renderModules() {
+            const grid = document.getElementById('modules-grid');
+            grid.innerHTML = '';
+            
+            for (const moduleName in modulesData) {
+                const module = modulesData[moduleName];
+                const card = document.createElement('div');
+                card.className = 'module-card';
+                card.onclick = () => showNameModal(moduleName);
+                card.innerHTML = `
+                    <i class="fas fa-brain"></i>
+                    <h3>${moduleName}</h3>
+                    <p class="exercise-count">${module.length} ejercicios disponibles</p>
+                    <button class="btn btn-primary">Comenzar Módulo</button>
+                `;
+                grid.appendChild(card);
+            }
+        }
+
+        // Modal para ingresar nombre
+        function showNameModal(moduleName) {
+            currentQuiz.moduleName = moduleName;
+            currentQuiz.questions = modulesData[moduleName];
+            currentQuiz.userAnswers = new Array(currentQuiz.questions.length).fill(null);
+            currentQuiz.currentQuestionIndex = 0;
+            
+            document.getElementById('name-modal').style.display = 'block';
+        }
+
+        function closeNameModal() {
+            document.getElementById('name-modal').style.display = 'none';
+            document.getElementById('student-name').value = '';
+        }
+
+        function startQuizWithName(event) {
+            event.preventDefault();
+            currentQuiz.studentName = document.getElementById('student-name').value;
+            closeNameModal();
+            showStudentSubView('quiz-view'); 
+            renderQuestion();
+        }
+
+        function renderQuestion() {
+            const question = currentQuiz.questions[currentQuiz.currentQuestionIndex];
+            const totalQuestions = currentQuiz.questions.length;
+            const currentIndex = currentQuiz.currentQuestionIndex;
+            
+            document.getElementById('quiz-title').innerText = `Módulo: ${currentQuiz.moduleName}`;
+            document.getElementById('question-counter').innerText = `Pregunta ${currentIndex + 1} de ${totalQuestions}`;
+            document.getElementById('question-text').innerText = question.question;
+            
+            const progress = ((currentIndex + 1) / totalQuestions) * 100;
+            document.getElementById('progress-bar').style.width = `${progress}%`;
+            
+            const imageEl = document.getElementById('question-image');
+            if (question.image) { 
+                imageEl.src = question.image; 
+                imageEl.style.display = 'block'; 
+            } else { 
+                imageEl.style.display = 'none'; 
+            }
+            
+            const optionsList = document.getElementById('quiz-options');
+            optionsList.innerHTML = '';
+            
+            question.options.forEach((option, index) => {
+                const li = document.createElement('li');
+                li.className = 'quiz-option';
+                
+                if (currentQuiz.userAnswers[currentIndex] === index) {
+                    li.classList.add('selected');
+                }
+                
+                li.innerHTML = `
+                    <label>
+                        <input type="radio" name="quiz-answer" value="${index}" ${currentQuiz.userAnswers[currentQuiz.currentQuestionIndex] === index ? 'checked' : ''}>
+                        <span>${option}</span>
+                    </label>
+                `;
+                
+                li.onclick = () => selectAnswer(index);
+                optionsList.appendChild(li);
+            });
+            
+            document.getElementById('prev-btn').disabled = currentIndex === 0;
+            
+            const nextBtn = document.getElementById('next-btn'); 
+            const finishBtn = document.getElementById('finish-btn');
+            
+            if (currentIndex === totalQuestions - 1) { 
+                nextBtn.style.display = 'none'; 
+                finishBtn.style.display = 'inline-block'; 
+            } else { 
+                nextBtn.style.display = 'inline-block'; 
+                finishBtn.style.display = 'none'; 
+            }
+        }
+
+        function selectAnswer(answerIndex) {
+            currentQuiz.userAnswers[currentQuiz.currentQuestionIndex] = answerIndex;
+            document.querySelectorAll('.quiz-option').forEach(el => el.classList.remove('selected'));
+            document.querySelector(`input[value="${answerIndex}"]`).parentElement.parentElement.classList.add('selected');
+        }
+
+        function nextQuestion() { 
+            if (currentQuiz.currentQuestionIndex < currentQuiz.questions.length - 1) { 
+                currentQuiz.currentQuestionIndex++; 
+                renderQuestion(); 
+            } 
+        }
+
+        function previousQuestion() { 
+            if (currentQuiz.currentQuestionIndex > 0) { 
+                currentQuiz.currentQuestionIndex--; 
+                renderQuestion(); 
+            } 
+        }
+
+        function finishQuiz() { 
+            showStudentSubView('results-view'); 
+            calculateAndShowResults(); 
+            saveStudentResults();
+        }
+
+        function generateAIExplanation(question) {
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    let explanation = question.explanation || `La respuesta correcta es '${question.options[question.correctAnswer]}'. Es fundamental revisar la literatura actualizada para entender los mecanismos fisiopatológicos y las guías clínicas relevantes para este caso.`;
+                    let reference = question.reference || "Referencia: Consultar guías clínicas actualizadas y literatura médica de referencia.";
+                    resolve({ text: explanation, reference: reference });
+                }, 1500);
+            });
+        }
+
+        async function calculateAndShowResults() {
+            const questions = currentQuiz.questions; 
+            const userAnswers = currentQuiz.userAnswers;
+            let score = 0; 
+            let resultsHTML = '';
+            
+            for (let i = 0; i < questions.length; i++) {
+                const q = questions[i]; 
+                const userAnswer = userAnswers[i];
+                const isCorrect = userAnswer === q.correctAnswer; 
+                
+                if (isCorrect) score++;
+                
+                const resultClass = isCorrect ? 'correct' : 'incorrect';
+                const resultIcon = isCorrect ? 'fa-check-circle' : 'fa-times-circle';
+                const userAnswerText = (userAnswer !== null) ? q.options[userAnswer] : 'No respondida';
+                const correctAnswerText = q.options[q.correctAnswer];
+                
+                const { text: aiExplanation, reference } = await generateAIExplanation(q);
+                
+                resultsHTML += `
+                    <div class="result-item ${resultClass}">
+                        <div>
+                            <strong>Pregunta ${i + 1}:</strong> ${q.question}
+                            <br>
+                            <small>Tu respuesta: <em>${userAnswerText}</em> | Respuesta correcta: <strong>${correctAnswerText}</strong></small>
+                            <div class="result-explanation">
+                                <strong>Análisis con IA:</strong>
+                                <br>${aiExplanation}
+                                <div class="result-reference">${reference}</div>
+                            </div>
+                        </div>
+                        <i class="fas ${resultIcon}"></i>
+                    </div>
+                `;
+            }
+            
+            document.getElementById('score-display').innerText = `${score} / ${questions.length}`;
+            const percentage = (score / questions.length) * 100;
+            
+            let message = percentage >= 90 ? "¡Excelente trabajo! Dominas el tema." : 
+                          percentage >= 70 ? "¡Buen trabajo! Sigue estudiando para perfeccionar." : 
+                          "Es importante repasar los conceptos. ¡No te rindas!";
+            
+            document.getElementById('score-message').innerText = message;
+            document.getElementById('results-details').innerHTML = resultsHTML;
+        }
+
+        // Guardar resultados del estudiante
+        function saveStudentResults() {
+            const questions = currentQuiz.questions; 
+            const userAnswers = currentQuiz.userAnswers;
+            let score = 0;
+            
+            for (let i = 0; i < questions.length; i++) {
+                if (userAnswers[i] === questions[i].correctAnswer) score++;
+            }
+            
+            const percentage = Math.round((score / questions.length) * 100);
+            const date = new Date().toLocaleDateString();
+            
+            if (!studentResults[currentQuiz.moduleName]) {
+                studentResults[currentQuiz.moduleName] = [];
+            }
+            
+            studentResults[currentQuiz.moduleName].push({
+                name: currentQuiz.studentName,
+                score: score,
+                total: questions.length,
+                percentage: percentage,
+                date: date
+            });
+            
+            localStorage.setItem('studentResults', JSON.stringify(studentResults));
+        }
+
+        // Lógica de la vista profesor
+        function handleLogin(event) {
+            event.preventDefault();
+            const username = document.getElementById('username').value; 
+            const password = document.getElementById('password').value;
+            
+            if (username.trim() === 'profesor' && password.trim() === '1234') {
+                showView('teacher-view');
+                renderModuleManagement();
+                initializeResultsSection();
+            } else {
+                alert('Usuario o contraseña incorrectos. Por favor, inténtalo de nuevo.');
+                document.getElementById('password').value = '';
+            }
+        }
+
+        // Inicializar sección de resultados
+        function initializeResultsSection() {
+            const savedResults = localStorage.getItem('studentResults');
+            if (savedResults) {
+                studentResults = JSON.parse(savedResults);
+            }
+            
+            const moduleSelect = document.getElementById('results-module-select');
+            moduleSelect.innerHTML = '<option value="">-- Seleccionar un módulo --</option>';
+            
+            for (const moduleName in modulesData) {
+                const option = document.createElement('option');
+                option.value = moduleName;
+                option.textContent = moduleName;
+                moduleSelect.appendChild(option);
+            }
+        }
+
+        // Mostrar resultados del módulo seleccionado
+        function showModuleResults() {
+            const selectedModule = document.getElementById('results-module-select').value;
+            
+            if (!selectedModule) {
+                document.getElementById('results-stats-container').style.display = 'none';
+                document.getElementById('results-table-container').style.display = 'none';
+                document.getElementById('no-results-message').style.display = 'none';
+                return;
+            }
+            
+            const moduleResults = studentResults[selectedModule] || [];
+            
+            if (moduleResults.length === 0) {
+                document.getElementById('results-stats-container').style.display = 'none';
+                document.getElementById('results-table-container').style.display = 'none';
+                document.getElementById('no-results-message').style.display = 'block';
+                return;
+            }
+            
+            // Mostrar estadísticas
+            document.getElementById('results-stats-container').style.display = 'flex';
+            document.getElementById('total-students').textContent = moduleResults.length;
+            
+            const avgPercentage = Math.round(moduleResults.reduce((sum, result) => sum + result.percentage, 0) / moduleResults.length);
+            document.getElementById('avg-score').textContent = avgPercentage + '%';
+            
+            const passCount = moduleResults.filter(result => result.percentage >= 70).length;
+            const passRate = Math.round((passCount / moduleResults.length) * 100);
+            document.getElementById('pass-rate').textContent = passRate + '%';
+            
+            // Mostrar tabla de resultados
+            document.getElementById('results-table-container').style.display = 'block';
+            document.getElementById('no-results-message').style.display = 'none';
+            
+            const tbody = document.getElementById('results-tbody');
+            tbody.innerHTML = '';
+            
+            // Ordenar resultados por porcentaje (mayor a menor)
+            const sortedResults = [...moduleResults].sort((a, b) => b.percentage - a.percentage);
+            
+            sortedResults.forEach(result => {
+                const row = document.createElement('tr');
+                
+                let scoreClass = '';
+                if (result.percentage >= 90) scoreClass = 'score-high';
+                else if (result.percentage >= 70) scoreClass = 'score-medium';
+                else scoreClass = 'score-low';
+                
+                row.innerHTML = `
+                    <td>${result.name}</td>
+                    <td>${result.score}/${result.total}</td>
+                    <td><span class="score-badge ${scoreClass}">${result.percentage}%</span></td>
+                    <td>${result.date}</td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
+
+        function showAdminSection(section) {
+            // Ocultar todas las secciones
+            document.getElementById('content-section').style.display = 'none';
+            document.getElementById('results-section').style.display = 'none';
+            
+            // Mostrar la sección seleccionada
+            document.getElementById(section + '-section').style.display = 'block';
+            
+            // Actualizar navegación lateral
+            document.querySelectorAll('.admin-sidebar a').forEach(link => {
+                link.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Si es la sección de resultados, inicializarla
+            if (section === 'results') {
+                initializeResultsSection();
+            }
+        }
+
+        function toggleExerciseForm() {
+            const container = document.getElementById('add-exercise-form-container');
+            container.classList.toggle('show');
+        }
+
+        function renderModuleManagement() {
+            const listContainer = document.getElementById('module-management-list');
+            listContainer.innerHTML = '';
+            
+            for (const moduleName in modulesData) {
+                const module = modulesData[moduleName];
+                const item = document.createElement('div');
+                item.className = 'module-list-item';
+                item.innerHTML = `
+                    <div>
+                        <h4>${moduleName}</h4>
+                        <span class="exercise-count">${module.length} ejercicios disponibles</span>
+                    </div>
+                    <div class="actions">
+                        <button class="btn btn-small btn-secondary" onclick="showModuleQRCode('${moduleName}')">
+                            <i class="fas fa-qrcode"></i> Compartir (QR)
+                        </button>
+                        <button class="btn btn-small btn-danger" onclick="deleteModule('${moduleName}')">
+                            <i class="fas fa-trash"></i> Eliminar
+                        </button>
+                    </div>
+                `;
+                listContainer.appendChild(item);
+            }
+        }
+
+        function deleteModule(moduleName) {
+            if (confirm(`¿Estás seguro de que quieres eliminar el módulo "${moduleName}" y todos sus ejercicios? Esta acción no se puede deshacer.`)) {
+                delete modulesData[moduleName];
+                renderModuleManagement();
+                alert(`Módulo "${moduleName}" eliminado correctamente.`);
+            }
+        }
+
+        function showModuleQRCode(moduleName) {
+            const modal = document.getElementById('qr-modal');
+            const qrcodeContainer = document.getElementById('qrcode');
+            const urlDisplay = document.getElementById('qr-url');
+            qrcodeContainer.innerHTML = "";
+            const baseUrl = window.location.href.split('?')[0];
+            const moduleUrl = `${baseUrl}?module=${encodeURIComponent(moduleName)}`;
+            new QRCode(qrcodeContainer, { 
+                text: moduleUrl, 
+                width: 200, 
+                height: 200, 
+                colorDark: "#000000", 
+                colorLight: "#ffffff", 
+                correctLevel: QRCode.CorrectLevel.H 
+            });
+            urlDisplay.textContent = moduleUrl;
+            modal.style.display = 'block';
+        }
+
+        function closeQRModal() { 
+            document.getElementById('qr-modal').style.display = 'none'; 
+        }
+
+        window.onclick = function(event) { 
+            const modal = document.getElementById('qr-modal'); 
+            const nameModal = document.getElementById('name-modal');
+            if (event.target == modal) { 
+                modal.style.display = 'none'; 
+            } 
+            if (event.target == nameModal) { 
+                nameModal.style.display = 'none'; 
+            }
+        }
+
+        document.getElementById('ex-image-file').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const imageUrl = e.target.result;
+                    document.getElementById('ex-image-url').value = imageUrl;
+                    const preview = document.getElementById('image-preview');
+                    preview.src = imageUrl;
+                    preview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            } else { 
+                alert('Por favor, selecciona un archivo de imagen válido.'); 
+            }
+        });
+
+        // Función mejorada para generar opciones con posición aleatoria
+        async function generateAIOptionsOnly() {
+            const questionText = document.getElementById('ex-question').value.toLowerCase();
+            const moduleName = document.getElementById('ex-module').value;
+            const imageUrl = document.getElementById('ex-image-url').value;
+            
+            if (!questionText && !imageUrl) { 
+                alert('Por favor, escribe el enunciado de la pregunta o añade una imagen.'); 
+                return; 
+            }
+            
+            const aiButton = event.target;
+            aiButton.disabled = true;
+            aiButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generando...';
+            
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            // Generar opciones con formato "Condición - Complicación"
+            const options = [];
+            const usedConditions = new Set();
+            const usedComplications = new Set();
+            
+            // Generar 4 opciones únicas
+            for (let i = 0; i < 4; i++) {
+                let condition, complication;
+                
+                do {
+                    condition = medicalConditions[Math.floor(Math.random() * medicalConditions.length)];
+                } while (usedConditions.has(condition));
+                
+                do {
+                    complication = medicalComplications[Math.floor(Math.random() * medicalComplications.length)];
+                } while (usedComplications.has(complication));
+                
+                usedConditions.add(condition);
+                usedComplications.add(complication);
+                
+                options.push(`${condition} - ${complication}`);
+            }
+            
+            // Seleccionar una respuesta correcta basada en el contexto
+            let correctIndex = 0;
+            
+            // Intentar encontrar una respuesta correcta basada en palabras clave
+            if (questionText.includes('fibrilación') || questionText.includes('auricular')) {
+                for (let i = 0; i < options.length; i++) {
+                    if (options[i].includes('Fibrilación Auricular')) {
+                        correctIndex = i;
+                        break;
+                    }
+                }
+            } else if (questionText.includes('parada') || questionText.includes('reanimación')) {
+                for (let i = 0; i < options.length; i++) {
+                    if (options[i].includes('Parada Cardiorrespiratoria')) {
+                        correctIndex = i;
+                        break;
+                    }
+                }
+            } else if (questionText.includes('neumonía') || questionText.includes('pulmonar')) {
+                for (let i = 0; i < options.length; i++) {
+                    if (options[i].includes('Neumonía')) {
+                        correctIndex = i;
+                        break;
+                    }
+                }
+            } else if (questionText.includes('diabetes') || questionText.includes('glucosa')) {
+                for (let i = 0; i < options.length; i++) {
+                    if (options[i].includes('Diabetes')) {
+                        correctIndex = i;
+                        break;
+                    }
+                }
+            } else if (questionText.includes('ictus') || questionText.includes('accidente cerebrovascular')) {
+                for (let i = 0; i < options.length; i++) {
+                    if (options[i].includes('Ictus')) {
+                        correctIndex = i;
+                        break;
+                    }
+                }
+            }
+            
+            // Barajar opciones y ubicar la respuesta correcta en una posición aleatoria
+            // Mezclar las opciones
+            for (let i = options.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [options[i], options[j]] = [options[j], options[i]];
+            }
+            
+            // Encontrar la nueva posición de la respuesta correcta después de barajar
+            for (let i = 0; i < options.length; i++) {
+                if (options[i].includes('Fibrilación Auricular') || 
+                    options[i].includes('Parada Cardiorrespiratoria') ||
+                    options[i].includes('Neumonía') ||
+                    options[i].includes('Diabetes') ||
+                    options[i].includes('Ictus')) {
+                    correctIndex = i;
+                    break;
+                }
+            }
+            
+            // Rellenar los campos de opciones
+            const optionInputs = document.querySelectorAll('.option-text');
+            const radioInputs = document.querySelectorAll('input[name="correct-answer"]');
+            
+            options.forEach((option, index) => {
+                optionInputs[index].value = option;
+            });
+            
+            radioInputs[correctIndex].checked = true;
+            
+            aiButton.disabled = false;
+            aiButton.innerHTML = '<i class="fas fa-magic"></i> Generar con IA';
+        }
+
+        // Función para generar una pregunta completa
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        async function generateFullAIQuestion() {
+            const moduleName = document.getElementById('ex-module').value;
+            if (moduleName === '+ Nuevo Módulo') {
+                alert('Por favor, selecciona un módulo existente para generar una pregunta con IA.');
+                return;
+            }
+            
+            const questionBank = aiQuestionBank[moduleName];
+            if (!questionBank || questionBank.length === 0) {
+                alert('No hay preguntas de IA disponibles para este módulo todavía.');
+                return;
+            }
+            
+            const aiButton = event.target;
+            aiButton.disabled = true;
+            aiButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generando Pregunta Completa...';
+
+            await new Promise(resolve => setTimeout(resolve, 2000));
+
+            const randomIndex = Math.floor(Math.random() * questionBank.length);
+            const selectedQuestion = questionBank[randomIndex];
+            
+            // Rellenar todos los campos
+            document.getElementById('ex-question').value = selectedQuestion.question;
+            document.getElementById('ex-image-url').value = selectedQuestion.image;
+            document.getElementById('ex-explanation').value = selectedQuestion.explanation;
+            document.getElementById('ex-reference').value = selectedQuestion.reference;
+
+            // Manejar la imagen
+            const preview = document.getElementById('image-preview');
+            if (selectedQuestion.image) {
+                preview.src = selectedQuestion.image;
+                preview.style.display = 'block';
+            } else {
+                preview.style.display = 'none';
+            }
+
+            // Barajar opciones y ubicar la respuesta correcta en una posición aleatoria
+            let allOptions = [
+                { text: selectedQuestion.correctAnswer, isCorrect: true }, 
+                ...selectedQuestion.distractors.map(d => ({ text: d, isCorrect: false }))
+            ];
+            
+            shuffleArray(allOptions);
+
+            const optionInputs = document.querySelectorAll('.option-text');
+            const radioInputs = document.querySelectorAll('input[name="correct-answer"]');
+            let newCorrectIndex = -1;
+
+            allOptions.forEach((option, index) => {
+                optionInputs[index].value = option.text;
+                if (option.isCorrect) { 
+                    newCorrectIndex = index; 
+                }
+            });
+            
+            radioInputs[newCorrectIndex].checked = true;
+
+            aiButton.disabled = false;
+            aiButton.innerHTML = '<i class="fas fa-magic"></i> <strong>Generar Pregunta Completa con IA</strong>';
+        }
+
+        // Función para generar contenido con IA
+        async function generateAIContentForTeacher() {
+            const questionText = document.getElementById('ex-question').value.toLowerCase();
+            const moduleName = document.getElementById('ex-module').value;
+            
+            if (!questionText) { 
+                alert('Por favor, escribe el enunciado de la pregunta.'); 
+                return; 
+            }
+            
+            const aiButton = event.target;
+            aiButton.disabled = true;
+            aiButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generando...';
+            
+            await new Promise(resolve => setTimeout(resolve, 2500));
+            
+            let explanation = '';
+            let reference = '';
+            
+            // Generar explicación basada en el contexto
+            if (questionText.includes('fibrilación') || questionText.includes('auricular')) {
+                explanation = "La respuesta correcta es 'Fibrilación Auricular - Riesgo de Accidente Cerebrovascular'. La FA es la arritmia más común y se asocia con un aumento significativo del riesgo de ictus embólico debido a la formación de trombos en la aurícula izquierda.";
+                reference = "Referencia: Guías de la ESC para el Manejo de la Fibrilación Auricular, 2020.";
+            } else if (questionText.includes('parada') || questionText.includes('reanimación')) {
+                explanation = "La respuesta correcta es 'Parada Cardiorrespiratoria - Riesgo de Muerte Súbita'. La RCP inmediata es fundamental para mejorar la supervivencia, ya que cada minuto de retraso reduce las posibilidades de recuperación en aproximadamente un 10%.";
+                reference = "Referencia: Guías de la AHA para RCP y ACE, 2020.";
+            } else if (questionText.includes('neumonía') || questionText.includes('pulmonar')) {
+                explanation = "La respuesta correcta es 'Neumonía - Insuficiencia Respiratoria'. La neumonía grave puede progresar a insuficiencia respiratoria que requiere soporte ventilatorio, especialmente en pacientes con comorbilidades o inmunosupresión.";
+                reference = "Referencia: Guías de la ATS/IDSA para el Tratamiento de la Neumonía Adquirida en la Comunidad, 2019.";
+            } else if (questionText.includes('diabetes') || questionText.includes('glucosa')) {
+                explanation = "La respuesta correcta es 'Diabetes Mellitus - Riesgo de Complicaciones Vasculares'. La diabetes crónica mal controlada se asocia con microangiopatía (retinopatía, nefropatía, neuropatía) y macroangiopatía (enfermedad coronaria, cerebrovascular, arterial periférica).";
+                reference = "Referencia: Guías de la ADA para el Manejo de la Diabetes, 2023.";
+            } else if (questionText.includes('ictus') || questionText.includes('accidente cerebrovascular')) {
+                explanation = "La respuesta correcta es 'Ictus Isquémico - Déficit Neurológico Focal'. El ictus isquémico resulta de la oclusión de una arteria cerebral, causando un déficit neurológico focal que depende del territorio vascular afectado.";
+                reference = "Referencia: Guías de la AHA/ASA para el Manejo del Ictus Agudo, 2022.";
+            } else {
+                explanation = "La respuesta correcta se basa en la evidencia científica actual y las guías clínicas más recientes. Es fundamental identificar la condición médica principal y su complicación asociada para un manejo adecuado.";
+                reference = "Referencia: Guías clínicas actualizadas y literatura médica de referencia.";
+            }
+            
+            document.getElementById('ex-explanation').value = explanation;
+            document.getElementById('ex-reference').value = reference;
+            
+            aiButton.disabled = false;
+            aiButton.innerHTML = '<i class="fas fa-magic"></i> Generar con IA';
+        }
+
+        // *** CORRECCIÓN: Función para manejar el cambio en el selector de módulos ***
+        function handleModuleChange() {
+            const moduleSelect = document.getElementById('ex-module');
+            const newModuleGroup = document.getElementById('new-module-group');
+            
+            if (moduleSelect.value === '+ Nuevo Módulo') {
+                newModuleGroup.style.display = 'block';
+            } else {
+                newModuleGroup.style.display = 'none';
+            }
+        }
+
+        // *** CORRECCIÓN: Función para manejar la creación de ejercicios ***
+        function handleCreateExercise(event) {
+            event.preventDefault();
+            
+            // Obtener valores del formulario
+            const moduleSelect = document.getElementById('ex-module').value;
+            let moduleName = moduleSelect;
+            
+            // Si se seleccionó "Nuevo Módulo", obtener el nombre del nuevo módulo
+            if (moduleSelect === '+ Nuevo Módulo') {
+                const newModuleName = document.getElementById('new-module-name').value.trim();
+                if (!newModuleName) {
+                    alert('Por favor, introduce un nombre para el nuevo módulo.');
+                    return;
+                }
+                moduleName = newModuleName;
+                
+                // Crear el nuevo módulo si no existe
+                if (!modulesData[moduleName]) {
+                    modulesData[moduleName] = [];
+                }
+            }
+            
+            // Obtener los demás valores del formulario
+            const question = document.getElementById('ex-question').value.trim();
+            const imageUrl = document.getElementById('ex-image-url').value.trim();
+            const explanation = document.getElementById('ex-explanation').value.trim();
+            const reference = document.getElementById('ex-reference').value.trim();
+            
+            // Obtener las opciones de respuesta
+            const optionInputs = document.querySelectorAll('.option-text');
+            const options = [];
+            for (let i = 0; i < optionInputs.length; i++) {
+                options.push(optionInputs[i].value.trim());
+            }
+            
+            // Obtener la respuesta correcta
+            const correctAnswerInput = document.querySelector('input[name="correct-answer"]:checked');
+            const correctAnswer = parseInt(correctAnswerInput.value);
+            
+            // Crear el nuevo ejercicio
+            const newExercise = {
+                id: Date.now(), // Usar timestamp como ID único
+                question: question,
+                image: imageUrl || null,
+                options: options,
+                correctAnswer: correctAnswer,
+                explanation: explanation,
+                reference: reference
+            };
+            
+            // Añadir el ejercicio al módulo correspondiente
+            modulesData[moduleName].push(newExercise);
+            
+            // Mostrar mensaje de éxito
+            alert(`Ejercicio añadido correctamente al módulo "${moduleName}".`);
+            
+            // Resetear el formulario
+            document.getElementById('create-exercise-form').reset();
+            document.getElementById('image-preview').style.display = 'none';
+            document.getElementById('new-module-group').style.display = 'none';
+            
+            // Actualizar la lista de módulos
+            renderModuleManagement();
+            
+            // Cerrar el formulario desplegable
+            document.getElementById('add-exercise-form-container').classList.remove('show');
+            
+            // Guardar en localStorage para persistencia
+            localStorage.setItem('modulesData', JSON.stringify(modulesData));
+        }
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', () => {
+            // Cargar resultados guardados desde localStorage si existen
+            const savedResults = localStorage.getItem('studentResults');
+            if (savedResults) {
+                studentResults = JSON.parse(savedResults);
+            }
+            
+            // Cargar módulos guardados desde localStorage si existen
+            const savedModules = localStorage.getItem('modulesData');
+            if (savedModules) {
+                modulesData = JSON.parse(savedModules);
+            }
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            const moduleToStart = urlParams.get('module');
+            
+            if (moduleToStart && modulesData[moduleToStart]) {
+                showView('student-view');
+                showNameModal(moduleToStart);
+            } else {
+                showModulesList();
+            }
+        });
+    </script>
+</body>
+</html>
